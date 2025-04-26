@@ -86,6 +86,62 @@ class GtkClock : ObjectWrap
         return snap.toPaintable();
     }
 
+    // Crashing code
+    private void do_snapshot()
+    {
+         double width = 100;
+         double height = 100;
+         auto BLACK = new RGBA(0,0,0,1);
+       
+         if (time)
+             time.destroy();
+         if (timezone)
+             time = DateTime.newNow(timezone);
+         else
+             time = DateTime.newNowLocal();
+       
+           snap.save();
+       
+           snap.translate(new Point(width / 2, height / 2));  
+       
+           import gsk.c.types: GskRoundedRect;
+           auto initRect = new Rect();
+           initRect = new Rect(initRect.init_(-50, -50, 100, 100).copy_());
+           GskRoundedRect rr;
+           RoundedRect outline = new RoundedRect(&rr);
+           outline = outline.initFromRect(initRect, 50);
+           snap.appendBorder(outline, [4, 4, 4, 4], [BLACK, BLACK, BLACK, BLACK]);
+       
+           snap.save();
+           snap.rotate(30 * time.getHour() + 0.5 * time.getMinute());
+           initRect = new Rect(initRect.init_(-2, -23, 4, 25).copy_());
+           outline = outline.initFromRect(initRect, 2);
+           snap.pushRoundedClip(outline);
+           snap.appendColor(BLACK, outline.bounds());
+           snap.pop();
+           snap.restore();
+       
+           snap.save();
+           snap.rotate(6 * time.getMinute());
+           initRect = new Rect(initRect.init_(-2, -43, 4, 45).copy_());
+           outline = outline.initFromRect(initRect, 2);
+           snap.pushRoundedClip(outline);
+           snap.appendColor(BLACK, outline.bounds());
+           snap.pop();
+           snap.restore();
+               
+           snap.save();
+           snap.rotate(6 * time.getSecond());
+           initRect = new Rect(initRect.init_(-1, -44, 2, 45).copy_());
+           outline = outline.initFromRect(initRect, 1);
+           snap.pushRoundedClip(outline);
+           snap.appendColor(new RGBA(1,0,0,1), outline.bounds());
+           snap.pop();
+           snap.restore();
+
+           snap.restore();
+    }
+/+ 
     private void do_snapshot()
     {
         double width = 100;
@@ -158,6 +214,7 @@ class GtkClock : ObjectWrap
 
         snap.restore();
     }
++/
 }
 
 class ClockWindow : ApplicationWindow
