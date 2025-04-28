@@ -23,82 +23,82 @@ struct ClockClass
 /// 
 class Clock : ObjectWrap, Paintable
 {
-	static GObjectClass* parentClass = null;
+    static GObjectClass* parentClass = null;
 
     private static string typeName = "Clock";
     
-	protected GdkPaintable* gpaintable;
+    protected GdkPaintable* gpaintable;
 
-	this(void* cObj, Flag!"Take" take = No.Take)
-	{
-		super(cast(ObjectC*) cObj, take);
-		gpaintable = cast(GdkPaintable*) cObj;
-	}
+    this(void* cObj, Flag!"Take" take = No.Take)
+    {
+	super(cast(ObjectC*) cObj, take);
+	gpaintable = cast(GdkPaintable*) cObj;
+    }
 
-	private extern(C)
-	{
-		/*
-		 *  here we register our new type and its interfaces with the type system.
-		 */
-		static GType clockGetType()
-		{
-			GType clockType = g_type_from_name(Clock.typeName.toStringz());
-
-			if (clockType == GTypeEnum.Invalid)
-			{
-				GTypeInfo clockInfo = {
-					ClockClass.sizeof,                          /* class size */
-					null,                                       /* base_init */
-					null,                                       /* base_finalize */
-					cast(GClassInitFunc) &clockClassInit,       /* class init function */
-					null,                                       /* class finalize */
-					null,                                       /* class_data */
-					ObjectC.sizeof,                             /* instance size */
-					0,                                          /* n_preallocs */
-					null
-				};
-
-				GInterfaceInfo itfPaintInfo = {
-					cast(GInterfaceInitFunc) &clockInit,
-					null,
-					null
-				};
-
-				/* Register the new derived type with the GObject type system */
-                clockType = g_type_register_static(GTypeEnum.Object, Clock.typeName.toStringz(), 
-                                                   &clockInfo, cast(GTypeFlags)0);
-
-				/* Register our Paintable interface with the type system */
-				g_type_add_interface_static(clockType, Paintable.getGType(), &itfPaintInfo);
-			}
-
-			return clockType;
-		}
+    private extern(C)
+    {
+        /*
+        *  here we register our new type and its interfaces with the type system.
+        */
+    	static GType clockGetType()
+    	{
+    	    GType clockType = g_type_from_name(Clock.typeName.toStringz());
+    
+        	if (clockType == GTypeEnum.Invalid)
+        	{
+        		GTypeInfo clockInfo = {
+        			ClockClass.sizeof,                          /* class size */
+        			null,                                       /* base_init */
+        			null,                                       /* base_finalize */
+        			cast(GClassInitFunc) &clockClassInit,       /* class init function */
+        			null,                                       /* class finalize */
+        			null,                                       /* class_data */
+        			ObjectC.sizeof,                             /* instance size */
+        			0,                                          /* n_preallocs */
+        			null
+        	    };
+    
+        		GInterfaceInfo itfPaintInfo = {
+        			cast(GInterfaceInitFunc) &clockInit,
+        			null,
+        			null
+        		};
+        
+        	    /* Register the new derived type with the GObject type system */
+        	    clockType = g_type_register_static(GTypeEnum.Object, Clock.typeName.toStringz(), 
+    					                           &clockInfo, cast(GTypeFlags)0);
+    
+    			/* Register our Paintable interface with the type system */
+    			g_type_add_interface_static(clockType, Paintable.getGType(), &itfPaintInfo);
+    		}
+    
+    		return clockType;
+    	}
 
         static void clockClassInit(GTypeClass* klass)
-		{
-			GObjectClass* objectClass;
-
-			parentClass = cast(GObjectClass*) g_type_class_peek_parent(klass);
-			objectClass = cast(GObjectClass*) klass;
-
-			objectClass.finalize = &clockFinalize;
-		}
-
-		static void clockFinalize(ObjectC* object)
-		{
-
-			/* must chain up - finalize parent */
-			parentClass.finalize(object);
-		}
-
-		static void clockInit(GdkPaintableInterface* iface)
-		{
-			iface.snapshot           = &clockSnapshot;
-			iface.getFlags           = &clockGetFlags;
-			iface.getIntrinsicWidth  = &clockGetIntrinsicWidth;
-			iface.getIntrinsicHeight = &clockGetIntrinsicHeight;
-		}
+        {
+            GObjectClass* objectClass;
+    
+            parentClass = cast(GObjectClass*) g_type_class_peek_parent(klass);
+            objectClass = cast(GObjectClass*) klass;
+    
+            objectClass.finalize = &clockFinalize;
+        }
+    
+        static void clockFinalize(ObjectC* object)
+        {
+    
+            /* must chain up - finalize parent */
+            parentClass.finalize(object);
+        }
+    
+        static void clockInit(GdkPaintableInterface* iface)
+        {
+            iface.snapshot           = &clockSnapshot;
+            iface.getFlags           = &clockGetFlags;
+            iface.getIntrinsicWidth  = &clockGetIntrinsicWidth;
+            iface.getIntrinsicHeight = &clockGetIntrinsicHeight;
+        }
 
         static void clockSnapshot(GdkPaintable* paintable, GdkSnapshot* snapshot, double width, double height)
         {
