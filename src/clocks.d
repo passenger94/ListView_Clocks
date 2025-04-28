@@ -2,8 +2,10 @@ module clocks;
 
 import std.logger;
 import std.string : toStringz;
+import std.traits; 
+import std.typecons : Tuple;
 
-import gobject.types, gobject.object, gobject.value;
+import gobject.types, gobject.object, gobject.value, gobject.dclosure;
 import gio.list_store, gio.list_model;
 import glib.time_zone, glib.date_time, glib.global;
 import gtk.types, gtk.snapshot : SnapshotGtk = Snapshot;
@@ -147,6 +149,28 @@ class Clock : ObjectWrap, Paintable
         gdk_paintable_invalidate_size(cast(GdkPaintable*)cPtr);
     }
 
+    ulong connectInvalidateContents(T)(T callback, Flag!"After" after = No.After)
+        if (isCallable!T
+            && is(ReturnType!T == void)
+        && (Parameters!T.length < 1 || (ParameterStorageClassTuple!T[0] == ParameterStorageClass.none && is(Parameters!T[0] : gdk.paintable.Paintable)))
+        && Parameters!T.length < 2)
+    {
+        extern(C) void _cmarshal(GClosure* _closure, GValue* _returnValue, uint _nParams, const(GValue)* _paramVals, void* _invocHint, void* _marshalData)
+        {
+        assert(_nParams == 1, "Unexpected number of signal parameters");
+        auto _dClosure = cast(DGClosure!T*)_closure;
+        Tuple!(Parameters!T) _paramTuple;
+
+        static if (Parameters!T.length > 0)
+            _paramTuple[0] = getVal!(Parameters!T[0])(&_paramVals[0]);
+
+        _dClosure.cb(_paramTuple[]);
+        }
+
+        auto closure = new DClosure(callback, &_cmarshal);
+        return connectSignalClosure("invalidate-contents", closure, after);
+    }
+
     override PaintableFlags getFlags() { return PaintableFlags.Size; }
     override int getIntrinsicWidth() { return 100; }
     override int getIntrinsicHeight() { return 100; }
@@ -225,7 +249,7 @@ class Clock : ObjectWrap, Paintable
 		auto p = super(clockGetType());
 		gpaintable = cast(GdkPaintable*) p.cPtr();
 		setData("clock", cast(void*) this);
-	
+        
     	this.location = location;
     	
     	timezone = tz ? tz : null;
@@ -236,6 +260,12 @@ class Clock : ObjectWrap, Paintable
     	    ticking_clock_id = timeoutAddSeconds(0, 1, &clock_tick);
     	
     	ticking_clocks ~= this;
+        
+        connectInvalidateContents( (Paintable paintable) {
+            import core.memory : GC;
+            // infof("collecting : %s", "...");
+            GC.collect();
+        } );
 	}
 
     ~this() {
@@ -257,8 +287,6 @@ class Clock : ObjectWrap, Paintable
             clock.invalidateContents();
         }
         
-        import core.memory : GC;
-        GC.collect();
         return true;
     }
 
