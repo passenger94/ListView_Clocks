@@ -225,17 +225,17 @@ class Clock : ObjectWrap, Paintable
 		auto p = super(clockGetType());
 		gpaintable = cast(GdkPaintable*) p.cPtr();
 		setData("clock", cast(void*) this);
-        
-        this.location = location;
-        
-        timezone = tz ? tz : null;
-        time = timezone ? DateTime.newNow(timezone) : DateTime.newNowLocal();
-        time_format = time.format("%x\n%X");
-        
-        if ( !ticking_clock_id )
-            ticking_clock_id = timeoutAddSeconds(0, 1, &clock_tick);
-
-        ticking_clocks ~= this;
+	
+    	this.location = location;
+    	
+    	timezone = tz ? tz : null;
+    	time = timezone ? DateTime.newNow(timezone) : DateTime.newNowLocal();
+    	time_format = time.format("%x\n%X");
+    	
+    	if ( !ticking_clock_id )
+    	    ticking_clock_id = timeoutAddSeconds(0, 1, &clock_tick);
+    	
+    	ticking_clocks ~= this;
 	}
 
     ~this() {
@@ -256,9 +256,8 @@ class Clock : ObjectWrap, Paintable
             // clock.time_format = clock.time.format("%x\n%X");
             clock.invalidateContents();
         }
-        /* Stress the app so it crashes earlier */
+        
         import core.memory : GC;
-        infof("collecting : %s", "...");
         GC.collect();
         return true;
     }
