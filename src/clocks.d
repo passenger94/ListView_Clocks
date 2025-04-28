@@ -283,7 +283,6 @@ class Clock : ObjectWrap, Paintable
         foreach (clock; ticking_clocks) {
             // TODO implement properties to update the labels
             // g_object_notify_by_pspec (G_OBJECT (clock), properties[PROP_TIME]);
-            // clock.time_format = clock.time.format("%x\n%X");
             clock.invalidateContents();
         }
         
