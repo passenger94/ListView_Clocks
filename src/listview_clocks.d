@@ -155,8 +155,5 @@ class ClockApp : Application
 
 int main(string[] args)
 {
-    import std.file : thisExePath;
-    string path = thisExePath();
-
     return new ClockApp().run(args);
 }
