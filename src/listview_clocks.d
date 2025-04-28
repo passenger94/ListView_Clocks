@@ -10,7 +10,7 @@ import gio.simple_action, gio.application : ApplicationGio = Application;
 import gio.list_store, gio.list_model;
 import glib.time_zone, glib.date_time, glib.variant, glib.global;
 import gtk.types, gtk.widget, gtk.application, gtk.application_window, gtk.scrolled_window, gtk.box, gtk.label, 
-       gtk.picture, gtk.list_item, gtk.signal_list_item_factory, gtk.no_selection, gtk.grid_view;;
+       gtk.picture, gtk.list_item, gtk.signal_list_item_factory, gtk.no_selection, gtk.grid_view;
 import gdk.paintable, gdk.rgba;
 import gsk.rounded_rect;
 import graphene.point, graphene.rect;
