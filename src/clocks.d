@@ -44,30 +44,30 @@ class Clock : ObjectWrap, Paintable
     	{
     	    GType clockType = g_type_from_name(Clock.typeName.toStringz());
     
-        	if (clockType == GTypeEnum.Invalid)
-        	{
-        		GTypeInfo clockInfo = {
-        			ClockClass.sizeof,                          /* class size */
-        			null,                                       /* base_init */
-        			null,                                       /* base_finalize */
-        			cast(GClassInitFunc) &clockClassInit,       /* class init function */
-        			null,                                       /* class finalize */
-        			null,                                       /* class_data */
-        			ObjectC.sizeof,                             /* instance size */
-        			0,                                          /* n_preallocs */
-        			null
-        	    };
-    
-        		GInterfaceInfo itfPaintInfo = {
-        			cast(GInterfaceInitFunc) &clockInit,
-        			null,
-        			null
-        		};
-        
-        	    /* Register the new derived type with the GObject type system */
-        	    clockType = g_type_register_static(GTypeEnum.Object, Clock.typeName.toStringz(), 
-    					                           &clockInfo, cast(GTypeFlags)0);
-    
+    		if (clockType == GTypeEnum.Invalid)
+    		{
+    			GTypeInfo clockInfo = {
+    				ClockClass.sizeof,                          /* class size */
+    				null,                                       /* base_init */
+    				null,                                       /* base_finalize */
+    				cast(GClassInitFunc) &clockClassInit,       /* class init function */
+    				null,                                       /* class finalize */
+    				null,                                       /* class_data */
+    				ObjectC.sizeof,                             /* instance size */
+    				0,                                          /* n_preallocs */
+    				null
+    		    };
+    	
+    			GInterfaceInfo itfPaintInfo = {
+    				cast(GInterfaceInitFunc) &clockInit,
+    				null,
+    				null
+    			};
+    	
+    		    /* Register the new derived type with the GObject type system */
+    		    clockType = g_type_register_static(GTypeEnum.Object, Clock.typeName.toStringz(), 
+    								   &clockInfo, cast(GTypeFlags)0);
+    	
     			/* Register our Paintable interface with the type system */
     			g_type_add_interface_static(clockType, Paintable.getGType(), &itfPaintInfo);
     		}
@@ -109,9 +109,9 @@ class Clock : ObjectWrap, Paintable
         }
 
         static GdkPaintableFlags clockGetFlags(GdkPaintable* paintable)
-		{
+	    {
             return GdkPaintableFlags.Size;  /* The size is immutable. */
-		}
+	    }
 
         static int clockGetIntrinsicWidth(GdkPaintable* paintable)
         {
