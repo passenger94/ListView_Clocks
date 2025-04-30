@@ -1,19 +1,14 @@
 module listview_clocks;
 
 import std.logger;
-import std.typecons : Yes;
-import std.algorithm : min;
 
 import gobject.types, gobject.object, gobject.value;
 import gio.types : ApplicationFlags;
 import gio.simple_action, gio.application : ApplicationGio = Application;
 import gio.list_store, gio.list_model;
-import glib.time_zone, glib.date_time, glib.variant, glib.global;
+import glib.time_zone, glib.variant;
 import gtk.types, gtk.widget, gtk.application, gtk.application_window, gtk.scrolled_window, gtk.box, gtk.label, 
        gtk.picture, gtk.list_item, gtk.signal_list_item_factory, gtk.no_selection, gtk.grid_view;
-import gdk.paintable, gdk.rgba;
-import gsk.rounded_rect;
-import graphene.point, graphene.rect;
 
 import clocks;
 
@@ -53,9 +48,18 @@ class ClockWindow : ApplicationWindow
         auto list_item = cast(ListItem) obj;
         auto box = new Box(Orientation.Vertical, 0);
         box.append(new Label());        // location Label
-        box.append(new Picture());      
-        box.append(new Label());        // time Label
+        box.append(new Picture());
+        auto time_label = new Label();
+        box.append(time_label);
         list_item.setChild(box);
+
+        import gtk.expression, gtk.constant_expression, gtk.property_expression;
+        Expression expression = ConstantExpression.newForValue(new Value(list_item));
+        auto clock_expression = new PropertyExpression(ListItem.getGType(), expression, "item");
+        expression = new PropertyExpression(Clock.getGType(), clock_expression, "time");
+        // Must add a ref
+        expression.cPtr(Yes.Dup);
+        auto watch = expression.bind(time_label, "label", time_label);
     }
 
     void onFactoryBind(ObjectWrap obj, SignalListItemFactory _)
@@ -70,8 +74,8 @@ class ClockWindow : ApplicationWindow
         auto pic = cast(Picture) loc.getNextSibling();
         pic.setPaintable(clock);
 
-        auto lbl = cast(Label) pic.getNextSibling();
-        lbl.setText(clock.time_format);
+        // auto lbl = cast(Label) pic.getNextSibling();
+        // lbl.setText(clock.getProperty!string ("time"));
     }
 
     final ListStore create_clocks_model()
@@ -79,37 +83,37 @@ class ClockWindow : ApplicationWindow
         auto store = new ListStore(GTypeEnum.Object);
 
         /* local time */
-        auto clock = new Clock("local", null, store);
+        auto clock = new Clock("local", null);
         store.append(clock);
         
         /* UTC time */
-        clock = new Clock("UTC", TimeZone.newUtc(), store); 
+        clock = new Clock("UTC", TimeZone.newUtc()); 
         store.append(clock);
         
         /* A bunch of timezones from everywhere */
-        clock = new Clock("San Francisco", TimeZone.newIdentifier("America/Los_Angeles"), store);
+        clock = new Clock("San Francisco", TimeZone.newIdentifier("America/Los_Angeles"));
         store.append(clock);
 
-        clock = new Clock("Xalapa", TimeZone.newIdentifier("America/Mexico_City"), store);
+        clock = new Clock("Xalapa", TimeZone.newIdentifier("America/Mexico_City"));
         store.append(clock);
 
-        clock = new Clock("Boston", TimeZone.newIdentifier("America/New_York"), store);
+        clock = new Clock("Boston", TimeZone.newIdentifier("America/New_York"));
         store.append(clock);
 
-        clock = new Clock("London", TimeZone.newIdentifier("Europe/London"), store);
+        clock = new Clock("London", TimeZone.newIdentifier("Europe/London"));
         store.append(clock);
 
-        clock = new Clock("Berlin", TimeZone.newIdentifier("Europe/Berlin"), store);
+        clock = new Clock("Berlin", TimeZone.newIdentifier("Europe/Berlin"));
         store.append(clock);
 
-        clock = new Clock("Moscow", TimeZone.newIdentifier("Europe/Moscow"), store);
+        clock = new Clock("Moscow", TimeZone.newIdentifier("Europe/Moscow"));
         store.append(clock);
 
         /* There is an expected half hour offset here ... in few other places too */
-        clock = new Clock("New Delhi", TimeZone.newIdentifier("Asia/Kolkata"), store);
+        clock = new Clock("New Delhi", TimeZone.newIdentifier("Asia/Kolkata"));
         store.append(clock);
 
-        clock = new Clock("Shanghai", TimeZone.newIdentifier("Asia/Shanghai"), store);
+        clock = new Clock("Shanghai", TimeZone.newIdentifier("Asia/Shanghai"));
         store.append(clock);
 
         return store;
