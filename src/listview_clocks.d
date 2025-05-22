@@ -23,7 +23,7 @@ class ClockWindow : ApplicationWindow
     this(Application app)
     {
         super(app);
-        setTitle("Gtk4 Clocks & Lists");
+        setTitle("Gtk4 Clocks & Lists"); 
         setDefaultSize(600, 400);
 
         auto sw = new ScrolledWindow();
@@ -48,14 +48,24 @@ class ClockWindow : ApplicationWindow
         sw.setChild(gridview);
     }
 
+private:
+
     void onFactorySetup(ObjectWrap obj, SignalListItemFactory _)
     {
         auto list_item = cast(ListItem) obj;
         auto box = new Box(Orientation.Vertical, 0);
         box.append(new Label());        // location Label
-        box.append(new Picture());      
-        box.append(new Label());        // time Label
+        box.append(new Picture());
+        auto time_label = new Label();
+        box.append(time_label);
         list_item.setChild(box);
+
+        Expression expression = ConstantExpression.newForValue(new Value(list_item));
+        auto clock_expression = new PropertyExpression(ListItem._getGType(), expression, "item");
+        expression = new PropertyExpression(Clock._getGType(), clock_expression, "time");
+        // Must add a ref
+        expression._cPtr(Yes.Dup);
+        auto watch = expression.bind(time_label, "label", time_label);
     }
 
     void onFactoryBind(ObjectWrap obj, SignalListItemFactory _)
@@ -70,47 +80,37 @@ class ClockWindow : ApplicationWindow
         auto pic = cast(Picture) loc.getNextSibling();
         pic.setPaintable(clock);
 
-        auto lbl = cast(Label) pic.getNextSibling();
-        lbl.setText(clock.time_format);
+        // auto lbl = cast(Label) pic.getNextSibling();
+        // lbl.setText(clock.getProperty!string ("time"));
     }
 
-    final ListStore create_clocks_model()
+    ListStore create_clocks_model()
     {
         auto store = new ListStore(GTypeEnum.Object);
 
         /* local time */
-        auto clock = new Clock("local", null, store);
-        store.append(clock);
+        store.append(new Clock("local", null));
         
         /* UTC time */
-        clock = new Clock("UTC", TimeZone.newUtc(), store); 
-        store.append(clock);
+        store.append(new Clock("UTC", TimeZone.newUtc()));
         
         /* A bunch of timezones from everywhere */
-        clock = new Clock("San Francisco", TimeZone.newIdentifier("America/Los_Angeles"), store);
-        store.append(clock);
+        store.append(new Clock("San Francisco", TimeZone.newIdentifier("America/Los_Angeles")));
 
-        clock = new Clock("Xalapa", TimeZone.newIdentifier("America/Mexico_City"), store);
-        store.append(clock);
+        store.append(new Clock("Xalapa", TimeZone.newIdentifier("America/Mexico_City")));
 
-        clock = new Clock("Boston", TimeZone.newIdentifier("America/New_York"), store);
-        store.append(clock);
+        store.append(new Clock("Boston", TimeZone.newIdentifier("America/New_York")));
 
-        clock = new Clock("London", TimeZone.newIdentifier("Europe/London"), store);
-        store.append(clock);
+        store.append(new Clock("London", TimeZone.newIdentifier("Europe/London")));
 
-        clock = new Clock("Berlin", TimeZone.newIdentifier("Europe/Berlin"), store);
-        store.append(clock);
+        store.append(new Clock("Berlin", TimeZone.newIdentifier("Europe/Berlin")));
 
-        clock = new Clock("Moscow", TimeZone.newIdentifier("Europe/Moscow"), store);
-        store.append(clock);
+        store.append(new Clock("Moscow", TimeZone.newIdentifier("Europe/Moscow")));
 
         /* There is an expected half hour offset here ... in few other places too */
-        clock = new Clock("New Delhi", TimeZone.newIdentifier("Asia/Kolkata"), store);
-        store.append(clock);
+        store.append(new Clock("New Delhi", TimeZone.newIdentifier("Asia/Kolkata")));
 
-        clock = new Clock("Shanghai", TimeZone.newIdentifier("Asia/Shanghai"), store);
-        store.append(clock);
+        store.append(new Clock("Shanghai", TimeZone.newIdentifier("Asia/Shanghai")));
 
         return store;
     }
@@ -134,14 +134,14 @@ class ClockApp : Application
         connectActivate(&onActivate);
     }
 
-    void onStartup(ApplicationGio app)
+    private void onStartup(ApplicationGio app)
     {
         auto quitAction = new SimpleAction("quit", null);
-        quitAction.connectActivate(&onQuit);
+        quitAction.connectActivate( (Variant pmr, SimpleAction act) => quit() );
         addAction(quitAction);
     }
 
-    void onActivate(ApplicationGio app)
+    private void onActivate(ApplicationGio app)
     {
         if (!mainWin) {
             mainWin = new ClockWindow(this);
@@ -149,8 +149,6 @@ class ClockApp : Application
         }
         mainWin.present();
     }
-
-    void onQuit(Variant parameter, SimpleAction action) { quit(); }
 }
 
 int main(string[] args)
